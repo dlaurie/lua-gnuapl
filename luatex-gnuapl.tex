@@ -1,0 +1,81 @@
+\documentclass[12pt,a4paper]{article}
+\oddsidemargin 0pt
+\textwidth 160mm
+
+\usepackage{fontspec}
+\setmonofont[Path=/home/plain/.fonts/]{apl385.ttf}
+
+\title{Executing APL code from inside \TeX}
+\author{Dirk Laurie}
+\date{14 March 2015}
+
+\newcommand\showapl[1]{\directlua{tex.print(apl.texeval"#1")}}
+\directlua{apl=require"gnuapl"}
+
+\begin{document}
+\maketitle
+
+The \verb"gnuapl" Lua package allows you to evaluate APL code 
+directly in \TeX\ and display it together with its output, without any 
+need for externally generated files, as it would appear in a GNU APL 
+interactive session. All you need to do is execute
+\begin{verbatim}
+   lualatex myfile.tex
+\end{verbatim}
+for a suitable input file containing commands like 
+\verb"\showapl{1⌽3 4⍴⍳12}". That command inserts the following output
+into \verb"myfile.pdf".
+
+\showapl{1⌽3 4⍴⍳12}
+
+The macro \verb"\showapl" is defined in the preamble of \verb"myfile.tex" 
+(see below), which also contains a command to load the package. In this 
+document we describe only the \verb"texeval" command of \verb"gnuapl". 
+The rest of the package is aimed more at standalone Lua applications and 
+is documented elsewhere. 
+
+\subsection*{\texttt{texeval(str[,option]})}
+   Pass the APL code in \texttt{str} to the GNU APL interpreter for 
+evaluation and optionally include the code and its result in the \TeX\
+document.
+
+\begin{description}
+\item{\texttt{str}} A string containing APL code, which will be evaluated
+by 
+\item{\texttt{option}}
+   \begin{description}
+      \item{\texttt{option=1}} Show the code, indented as in an APL session.
+      \item{\texttt{option=2}} Show the result, not indented.
+      \item{\texttt{option=3}} Both of the above.
+   \end{description}
+\end{description}
+
+\pagebreak
+
+\section*{Preamble of this document}
+
+You can use the following preamble in your own \TeX\ source, after
+of course customizing some of the fields.
+
+\begin{verbatim}
+\documentclass[12pt,a4paper]{article}
+\oddsidemargin 0pt
+\textwidth 160mm
+
+\usepackage{fontspec}
+\setmonofont[Path=/home/plain/.fonts/]{apl385.ttf}
+
+\title{Executing APL code from inside \TeX}
+\author{Dirk Laurie}
+\date{14 March 2015}
+
+\newcommand\showapl[1]{\directlua{tex.print(apl.texeval"#1")}}
+\directlua{apl=require"gnuapl"}
+\end{verbatim}
+
+The font \texttt{apl385.ttf} is freely available in many places in 
+the Internet. Any other fixed-space font that offers the APL glyphs
+should work as well. In my opinion, APL code does not look good in
+a variable-space font.
+
+\end{document}

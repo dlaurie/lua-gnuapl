@@ -1,0 +1,92 @@
+INSTALLING `gnuapl`
+------------------
+
+The instructions below apply to Ubuntu 14.04 LTS on AMD64. On other
+hardware, you may need to remove `-fPIC` from the `CFLAGS` in `makefile`. 
+The compiler will probably tell you when this needs to be done.
+
+Contents
+--------
+
+    INSTALL (this file)
+    LICENSE
+    README.txt
+    gnuapl.lua
+    luatex-gnuapl.tex
+    lua_gnuapl.c
+    makefile
+    test.lua
+
+Prerequisites
+-------------
+
+1.  `libapl.h` and `libapl.so` from a sufficiently recent GNU APL
+    installation. The version in Ubuntu 14.04 is too old. 
+    See [Getting GNU APL].
+
+2.  A terminal setup that makes it easy to enter APL characters. Good
+    advice is available in the GNU APL package in the file
+    `README-3-keyboard`. If you have superuser access on your system, I
+    recommend the approach described in the GNU APL source in
+    `support-files/Dirk/systemwide_xkb.txt`.
+
+3.  Lua 5.2 or Lua 5.3, assumed to have been installed by `make linux`
+    and `make install` using default settings. 
+
+4.  The package `lcomplex` by Luiz Henrique de Figuereido, downloadable
+    from
+
+        <http://tecgraf.puc-rio.br/~lhf/ftp/lua/5.2/lcomplex.tar.gz>
+
+Don't worry about the "5.2". Just follow the instructions.
+
+This package is optional. The `gnuapl` module will compile and run
+without it. If all you are ever going to do with complex numbers is to
+examine values imported from APL, you can omit this.
+
+Installation
+------------
+
+If your Lua is 5.2, you
+    will need to edit the `makefile`; it is clearly commented. If you
+    build both versions, do `make clean` before the second `make test`.
+
+1.  In the directory containing this package, if your Lua is 5.2,
+    edit `makefile` as indicated in the comments at the top. If you
+    have previously built the other versions, do `make clean`.
+
+2.  Do
+
+        make test
+
+The last line printed should be "All tests passed".
+
+3.  Copy `gnuapl.lua` to somewhere in your `package.path`, for example
+    `/usr/local/share/lua/5.x` for the proper `x`; and `gnuapl_core.so` 
+    to somewhere in your `package.cpath`, for example 
+    `/usr/local/lib/lua/5.x`. You should now be able to access the
+    package from anywhere.
+
+Getting GNU APL
+---------------
+
+Maybe by the time you read this, GNU APL 1.5 will be available, which 
+should have everything you need. If not, check out the source by
+
+    svn -checkout http://svn.savannah.gnu.org/svn/apl/trunk
+
+This will make a subdirectory `trunk` in the current directory
+containing the source code.  Sources retrieved on 6 March 2015 
+(revision 555) were used in the development of `gnuapl`. In that
+directory, do:
+
+    ./configure --with-libapl 
+    sudo make install
+
+This will take some time (over 2.5MB source code will be compiled, 
+over 100MB of object code will be generated, and all of that needs 
+to be linked). The `g++` compiler rapaciously grabs memory, so it's 
+a good idea to put other memory hogs in the hutch first, e.g. by 
+stopping Firefox, otherwise your system might thrash.
+
+
