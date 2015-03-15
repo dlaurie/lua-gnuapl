@@ -44,20 +44,24 @@ This package is optional. The `gnuapl` module will compile and run
 without it. If all you are ever going to do with complex numbers is to
 examine values imported from APL, you can omit this.
 
+5.  Pandoc, available in Ubuntu by `sudo apt-get install pandoc`. It is
+    not the end of the world if you do not have it: `README.txt` is
+    perfectly readable by itself.
+
+6.  Any recent TeX installation (TexLive 2013 will do). Totally optional
+    unless you wish to evaluate APL expressions from LuaTeX.
+
 Installation
 ------------
 
-If your Lua is 5.2, you
-    will need to edit the `makefile`; it is clearly commented. If you
-    build both versions, do `make clean` before the second `make test`.
+If your Lua is 5.2, you will need to edit the `makefile`; it is clearly 
+commented. If you build both versions, do `make clean` before the second 
+`make test`.
 
 1.  In the directory containing this package, if your Lua is 5.2,
-    edit `makefile` as indicated in the comments at the top. If you
-    have previously built the other versions, do `make clean`.
+    edit `makefile` as indicated in the comments at the top. 
 
-2.  Do
-
-        make test
+2.  Do `make test`.
 
 The last line printed should be "All tests passed".
 
@@ -66,6 +70,8 @@ The last line printed should be "All tests passed".
     to somewhere in your `package.cpath`, for example 
     `/usr/local/lib/lua/5.x`. You should now be able to access the
     package from anywhere.
+
+4. If you have Pandoc and TeX, do `make doc`.
 
 Getting GNU APL
 ---------------

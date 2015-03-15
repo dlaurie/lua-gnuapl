@@ -23,7 +23,7 @@ gnuapl_core.so: makefile $(OFILES)
 tryme: makefile gnuapl.lua gnuapl_core.so
 	$(LUA) -i -e"apl=require'gnuapl'"
 
-test: makefile gnuapl.lua gnuapl_core.so test.lua doc
+test: makefile gnuapl.lua gnuapl_core.so test.lua
 	$(LUA) test.lua
 
 luatex-gnuapl.pdf: luatex-gnuapl.tex
@@ -39,6 +39,12 @@ README.html: README.txt
 	pandoc -s README.txt -o README.html
 
 .PHONY: all clean doc test tryme
+
+GITFILES = INSTALL LICENSE README.txt gnuapl.lua lua_gnuapl.c luatex-gnuapl.tex makefile test.lua
+
+git-add: $(GITFILES)
+	git add $(GITFILES)
+	echo "Now 'git commit -m "message"' and 'git push'."
 
 
 
