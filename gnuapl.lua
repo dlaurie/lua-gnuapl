@@ -1,6 +1,6 @@
 -- gnuapl.lua © Dirk Laurie 2015, MIT licence, see COPYING 
 
-assert (_VERSION >= "Lua 5.2")
+assert (_VERSION == "Lua 5.2" or _VERSION == "Lua 5.3")
 
 local mathtype = math.type or -- needed for Lua 5.2
    function(x)
@@ -16,13 +16,19 @@ local APL_name = '^%s*[_%a][_%w]*%s*$'
 local APL_command = '^%s*[%)%]][a-zA-Z]+'
 local APL_OFF = "^%s*%)OFF%s*$"
 
--- The following function relies on an undocumented feature of 
--- Lua 5.3.0. A similar feature is available in Lua 5.2.x (where x>0) 
--- more simply via the table `_CLIBS` in the registry. In Lua 5.1,
--- loaded libraries were individually keyed with keys like
--- "LOADLIB: /usr/local/lib/libapl.so".
-local is_loaded_library = function (LIB_NAME)
--- returns fully qualified name of loaded library or `false`
+local is_loaded_library = {}
+-- The functions in this table return the fully qualified name of the 
+-- loaded library or `false`. WARNING: They rely on undocumented 
+-- features of Lua 5.2.x (x>0) and Lua 5.3.0. 
+
+is_loaded_library["Lua 5.2"] = function (LIB_NAME)
+   for key,val in pairs(debug.getregistry()._CLIBS) do
+      if type(key)=='string' and key:match(LIB_NAME..'$') then return key end
+   end
+   return false
+end
+
+is_loaded_library["Lua 5.3"] = function (LIB_NAME)
    for key,val in pairs(debug.getregistry()) do
       if type(key)=='userdata' and type(val)=='table' then 
          for k in pairs(val) do
@@ -35,13 +41,18 @@ local is_loaded_library = function (LIB_NAME)
    return false
 end
 
-if not is_loaded_library(LIB) and not package.loadlib(DIR..LIB,"*") then
+if not is_loaded_library[_VERSION](LIB) and 
+   not package.loadlib(DIR..LIB,"*") then
    error(LIB.." has not been loaded.")
 end
 
 pcall(require,"complex")
 
-local core = require "gnuapl_core"
+local found,core = pcall(require,"gnuapl_core")
+
+if not found then
+   error"Could not find required module `gnuapl_core`."
+end
 
 local core_exec = core.exec
 local core_command = core.command

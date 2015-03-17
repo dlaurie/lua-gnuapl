@@ -1,12 +1,13 @@
 INSTALLING `gnuapl`
 ------------------
 
-The instructions below apply to Ubuntu 14.04 LTS on AMD64. On other
-hardware, you may need to remove `-fPIC` from the `CFLAGS` in `makefile`. 
-The compiler will probably tell you when this needs to be done.
+First try `make test`. If you see `All tests passed`, it's your lucky
+day. You can close this document and open README.txt.
 
-Contents
---------
+Otherwise, read on and good luck.
+
+Package contents
+----------------
 
     INSTALL (this file)
     LICENSE
@@ -17,6 +18,18 @@ Contents
     makefile
     test.lua
 
+System dependence
+-----------------
+
+You must have a GNU C compiler and some basic GNU utilities like `make`.
+
+The instructions below apply to Ubuntu 14.04 LTS on AMD64. On other
+hardware, you may need to remove `-fPIC` from the `CFLAGS` in `makefile`. 
+The compiler will probably tell you when this needs to be done.
+
+On non-Debian-based Linux systems, the directories and package names
+may be different.
+
 Prerequisites
 -------------
 
@@ -24,57 +37,54 @@ Prerequisites
     installation. The version in Ubuntu 14.04 is too old. 
     See [Getting GNU APL].
 
-2.  A terminal setup that makes it easy to enter APL characters. Good
-    advice is available in the GNU APL package in the file
-    `README-3-keyboard`. If you have superuser access on your system, I
-    recommend the approach described in the GNU APL source in
-    `support-files/Dirk/systemwide_xkb.txt`.
+2.  A terminal setup that makes it easy to enter APL characters. 
+    See [Getting GNU APL].
 
-3.  Lua 5.2 or Lua 5.3, assumed to have been installed by `make linux`
-    and `make install` using default settings. 
+3.  Lua (not earlier than 5.2.1), assumed to have been installed by 
+    `make linux` and `make install` using default settings, and then moved 
+    to version-dependent locations so that the following executables and 
+    directories exist, possibly with 5.3 instead of 5.2.
+
+        LUA=lua5.2
+        LIBLUA=/usr/local/lib/lua/5.2
+        SHARE=/usr/local/share/lua/5.2
+        INC=/usr/local/include/lua5.2
 
 4.  The package `lcomplex` by Luiz Henrique de Figuereido, downloadable
     from
 
         <http://tecgraf.puc-rio.br/~lhf/ftp/lua/5.2/lcomplex.tar.gz>
 
-Don't worry about the "5.2". Just follow the instructions.
+    If you have Lua 5.3, don't worry about the "5.2". Just follow the 
+    instructions.
 
-This package is optional. The `gnuapl` module will compile and run
-without it. If all you are ever going to do with complex numbers is to
-examine values imported from APL, you can omit this.
+    This package is optional. The `gnuapl` module will compile and run
+    without it. If all you are ever going to do with complex numbers is 
+    to examine values imported from APL, you can omit this.
 
 5.  Pandoc, available in Ubuntu by `sudo apt-get install pandoc`. It is
     not the end of the world if you do not have it: `README.txt` is
     perfectly readable by itself.
 
-6.  Any recent TeX installation (TexLive 2013 will do). Totally optional
-    unless you wish to evaluate APL expressions from LuaTeX.
-
 Installation
 ------------
 
-If your Lua is 5.2, you will need to edit the `makefile`; it is clearly 
-commented. If you build both versions, do `make clean` before the second 
-`make test`.
+Uncomment the correct LUA_VERSION in the makefile. If you build both 
+versions, do `make clean` before the second `make test`.
 
-1.  In the directory containing this package, if your Lua is 5.2,
-    edit `makefile` as indicated in the comments at the top. 
+1.  Do `make test`. The last line printed should be "All tests passed".
 
-2.  Do `make test`.
+2.  For system-wide installation, do `sudo make install`. This copies 
+    `gnuapl.lua` to `$(SHARE)` and `gnuapl_core.so` to `$(LUALIB)`.
+    If you do not have `sudo` rights, just put them somewhere in your 
+    `package.path` and `package.cpath` respectively.
+    
+3.  If you have Pandoc, do `make doc`. This makes an HTML version of
+    the README and (if you have TeX) a PDF file documenting the `texeval`
+    function.
 
-The last line printed should be "All tests passed".
-
-3.  Copy `gnuapl.lua` to somewhere in your `package.path`, for example
-    `/usr/local/share/lua/5.x` for the proper `x`; and `gnuapl_core.so` 
-    to somewhere in your `package.cpath`, for example 
-    `/usr/local/lib/lua/5.x`. You should now be able to access the
-    package from anywhere.
-
-4. If you have Pandoc and TeX, do `make doc`.
-
-Getting GNU APL
----------------
+Getting and installing GNU APL
+------------------------------
 
 Maybe by the time you read this, GNU APL 1.5 will be available, which 
 should have everything you need. If not, check out the source by
@@ -94,5 +104,66 @@ over 100MB of object code will be generated, and all of that needs
 to be linked). The `g++` compiler rapaciously grabs memory, so it's 
 a good idea to put other memory hogs in the hutch first, e.g. by 
 stopping Firefox, otherwise your system might thrash.
+
+Good advice on how to enable an APL keyboard is available in the 
+GNU APL source package in the file `README-3-keyboard`. If you have 
+superuser access on your system, I recommend the approach described 
+in the GNU APL source in `support-files/Dirk/systemwide_xkb.txt`.
+
+Using `gnuapl.lua` from LuaTeX
+------------------------------
+
+The easiest way is to copy or symlink `gnuapl.lua` and `gnuapl_core.so`
+into the directory containing the TeX source that invokes APL via Lua.
+Please do that. Do not read further.
+
+The other option is to make them visible to TeX's path-searching 
+mechanism, the powerful but ponderous `kpse`. 
+
+The `makefile` contains a `make texinstall` target. It's for my system. 
+It's a partial implementation of the instructions below. Don't use it 
+as is. Edit it for your system first. 
+
+1.  Your LuaTeX version must not be earlier than 0.74. 
+2.  Build `gnuapl_core.so` with the settings for Lua 5.2. 
+3.  Copy or symlink `gnuapl.lua` to `$HOME/texmf/scripts`.
+4.  Copy or symlink `gnuapl_core.so` to `$HOME/texmf/clua`.
+
+Symlinking is better in a development situation. You do it once and 
+for all.
+
+Test it by typing:
+
+    kpsewhich gnuapl.lua
+    kpsewhich gnuapl_core.so
+
+You should see the full pathname of the file. If not, `lualatex` will
+also not see it. Maybe (I doubt it) `texhash` will help.
+
+It is likely that the Lua file will be visible but not the shared
+object file.  If you have never done so before, you will need to tell 
+your system that it should look for binary Lua modules in `$HOME/texmf/clua`.
+This is done by creating a local `texmf.cnf` file containing the line 
+
+    CLUAINPUTS = .;$TEXMF/clua//;$SELFAUTOLOC/lib/{$progname,$engine,}/lua//
+
+or, if the local `texmf.cnf` already exists, appending that line to it.
+
+Lastly, even that is not good enough on a Debian-based system like mine.
+The Debian policy is to protect you by ignoring your local `texmf.cnf` 
+file, even if it is in its correct directory, unless you have explicitly 
+enabled it by entering
+
+    export TEXMFCNF=$HOME/.texmf-config/web2c:
+
+in your currently active terminal. (That's right: only the currently
+active terminal. If you have three terminal tabs the other two will 
+still not be able to see the local `texmf.cnf`.) That colon is 
+tremendously important; it means "now go on and read all the standard 
+`texmf.cnf` files". 
+
+Or just put that line in `$HOME/.bash_aliases`. Then every terminal
+you open from then on will know about `texmf.cnf`.
+
 
 

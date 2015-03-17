@@ -1,3 +1,5 @@
+package.path = "./?.lua"
+package.cpath = "./?.so"
 apl = require "gnuapl"
 keyboard = [[
 US Keyboard Layout:
@@ -18,16 +20,11 @@ US Keyboard Layout:
 
 ]]
 
-apl_what = [[
- APL_metatable FNS  IN   LOAD    OFF SAVE WSID    exec lua set  what  
- ERASE         HELP KEYB MAXRANK OUT VARS command get  new type zeros 
-]]
-
 print("=== Test suite evaluated under ".._VERSION.." ===")
 print()
 print("Module 'gnuapl' contains:")
-print(apl_what)
-print"The above table is later referred to as 'apl_what'.\n"
+print(apl:what())
+print"The above table is obtained by 'apl_what()'.\n"
 print("APL_metatable contains:")
 print(apl.what(apl.APL_metatable))
 
@@ -84,8 +81,12 @@ apl.get"S":celltype(4) == "pointer"
 apl.get"S"[4]:celltype(3) == "pointer"
 tostring(apl.get"S"[4][3]) == "brown"
 --
-apl:what() == apl_what
 apl.WSID() == "IS CLEAR WS\n"
+--
+apl"midpoint_rule ← { ((2÷⍵)×⍵⍴1) ,[0.5] ¯1+(2÷⍵)×¯0.5+⍳⍵ }" == "midpoint_rule\n"
+apl"midpoint_rule 10"
+apl"integrated_by ← { ⍵[1;] +.× ⍶ ⍵[2;] }" == "integrated_by\n"
+apl"* integrated_by midpoint_rule 10" == "2.346489615\n"
 ]]
 
 for test in tests:gmatch"[^\n]+" do

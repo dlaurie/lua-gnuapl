@@ -109,17 +109,23 @@ static int gnuapl_set(lua_State* L) {
   return 0;
 }
 
-result_callback res_callback = 0;  // external variable!
+result_callback res_callback = 0;  // external variable for callback
+static lua_State* saved_L = 0;     // needed inside the callback
 
 int push_apl_output(const APL_value apl,int committed) {
-  static lua_State *L;
-  if (committed==765834912) {  // PIN to trigger registering L
-    L=(lua_State*)apl;
-    return committed;
-  };
-  lua_pushstring(L,print_value_to_string(apl));  
+  lua_pushstring(saved_L,print_value_to_string(apl));  
   return 0;
 }
+
+static int gnuapl_exec(lua_State* L) {
+  saved_L = L;  
+  res_callback = push_apl_output;
+  apl_exec(luaL_checkstring(L,1));
+  saved_L = NULL;
+  res_callback = NULL;
+  return 1;
+}
+
 
 /* The userdata holds an APL_value, but the Lua C API functions
    return a pointer to it, which must be dereferenced. */
@@ -127,15 +133,6 @@ void pushAPLvalue(lua_State *L, const APL_value apl) {
   new_userdata(L,APL_value,newapl);
   luaL_setmetatable(L,"APL object");
   *newapl = apl;
-}
-
-static int gnuapl_exec(lua_State* L) {
-  push_apl_output((APL_value)L,765834912);
-  res_callback = push_apl_output;
-  apl_exec(luaL_checkstring(L,1));
-  push_apl_output(NULL,765834912);
-  res_callback = NULL;
-  return 1;
 }
 
 static int gnuapl_get(lua_State* L) {
@@ -346,6 +343,8 @@ static const luaL_Reg APL_funcs [] = {
 };
 
 LUAMOD_API int luaopen_gnuapl_core (lua_State *L) {
+
+  init_libapl("gnuapl_core", /* do not log startup */ 0);
 
   luaL_newmetatable(L,"APL object");
   luaL_setfuncs(L,APL_funcs,0);

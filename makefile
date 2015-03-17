@@ -1,11 +1,24 @@
-# makefile for lua-gnuapl
+# makefile for lua-gnuapl  
+# If you must, read INSTALL and LICENSE too.
 
-# Uncomment for Lua 5.2
-INC=/usr/local/include/lua5.2 
-LIBLUA=/usr/local/lib/lua/5.2
-LUA=lua5.2
-# Uncomment for default Lua, assumend to be Lus 5.3
-#LUA=lua
+# Uncomment one of the following two lines. 
+#LUA_VERSION=5.2
+LUA_VERSION=5.3
+# ----------------------------------------
+
+#    Targets
+# test: build the shared library and run the test program
+# install: install the Lua and C modules systemwide (requires root access)
+# tryme: start a Lua session with the module preloaded
+# doc: make HTML and PDF documentation (requires Pandoc and TeX)
+# clean: remove files that can be re-made
+
+default: test 
+
+LUA=lua$(LUA_VERSION)
+LIBLUA=/usr/local/lib/lua/$(LUA_VERSION)
+SHARE=/usr/local/share/lua/$(LUA_VERSION)
+INC=/usr/local/include/lua$(LUA_VERSION)
 
 CFLAGS = -fPIC -I$(INC) -no-integrated-cpp
 
@@ -14,8 +27,7 @@ CFLAGS = -fPIC -I$(INC) -no-integrated-cpp
 
 OFILES = lua_gnuapl.o
 AUXFILES = luatex-gnuapl.aux luatex-gnuapl.log
-
-all: test README.html
+DOCFILES = README.html luatex-gnuapl.pdf
 
 gnuapl_core.so: makefile $(OFILES)
 	cc -shared -pthread $(OFILES) -o gnuapl_core.so
@@ -30,15 +42,28 @@ luatex-gnuapl.pdf: luatex-gnuapl.tex
 	lualatex luatex-gnuapl.tex
 	rm $(AUXFILES)
 
-doc: README.html luatex-gnuapl.pdf
+doc: $(DOCFILES)
 
 clean:
-	- rm $(OFILES) gnuapl_core.so README.html
+	- rm $(OFILES) gnuapl_core.so $(DOCFILES)
 
 README.html: README.txt
 	pandoc -s README.txt -o README.html
 
-.PHONY: all clean doc test tryme
+install: gnuapl.lua gnuapl_core.so
+	cp gnuapl.lua $(SHARE)
+	cp gnuapl_core.so $(LIBLUA)
+
+.PHONY: clean default doc install test tryme texinstall
+
+#--------- targets below this message are for the convenience of the
+#--------- package maintainer and will need editing on other machines
+
+texinstall: gnuapl.lua gnuapl_core.so
+ifeq ($(LUA_VERSION),5.2)
+	ln -s $(SHARE)/gnuapl.lua ~/texmf/scripts/lua
+	ln -s $(LIBLUA)/gnuapl_core.so ~/texmf/clua
+endif
 
 GITFILES = INSTALL LICENSE README.txt gnuapl.lua lua_gnuapl.c luatex-gnuapl.tex makefile test.lua
 

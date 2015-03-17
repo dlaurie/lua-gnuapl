@@ -10,15 +10,16 @@
 \date{14 March 2015}
 
 \newcommand\showapl[1]{\directlua{tex.print(apl.texeval"#1")}}
+\newcommand\doapl[1]{\directlua{tex.print(apl.texeval("#1",1))}}
 \directlua{apl=require"gnuapl"}
 
 \begin{document}
 \maketitle
 
 The \verb"gnuapl" Lua package allows you to evaluate APL code 
-directly in \TeX\ and display it together with its output, without any 
-need for externally generated files, as it would appear in a GNU APL 
-interactive session. All you need to do is execute
+directly in \TeX\ and display it together with its output as it would 
+appear in a GNU APL interactive session. No externally generated files, 
+no cutting and pasting. All you need to do is execute
 \begin{verbatim}
    lualatex myfile.tex
 \end{verbatim}
@@ -41,12 +42,12 @@ document.
 
 \begin{description}
 \item{\texttt{str}} A string containing APL code, which will be evaluated
-by 
+regardless of what option is chosen.
 \item{\texttt{option}}
    \begin{description}
-      \item{\texttt{option=1}} Show the code, indented as in an APL session.
-      \item{\texttt{option=2}} Show the result, not indented.
-      \item{\texttt{option=3}} Both of the above.
+      \item{\texttt{option=1}} Give the code to \TeX, indented as in an APL session.
+      \item{\texttt{option=2}} Give the result to \TeX, not indented.
+      \item{\texttt{option=3}} Both of the above. This is the default.
    \end{description}
 \end{description}
 
@@ -55,7 +56,8 @@ by
 \section*{Preamble of this document}
 
 You can use the following preamble in your own \TeX\ source, after
-of course customizing some of the fields.
+of course customizing some of the fields. Note the \TeX\ macros for
+streamlined use of \texttt{texeval}.
 
 \begin{verbatim}
 \documentclass[12pt,a4paper]{article}
@@ -70,11 +72,12 @@ of course customizing some of the fields.
 \date{14 March 2015}
 
 \newcommand\showapl[1]{\directlua{tex.print(apl.texeval"#1")}}
+\newcommand\doapl[1]{\directlua{tex.print(apl.texeval("#1",1))}}
 \directlua{apl=require"gnuapl"}
 \end{verbatim}
 
-The font \texttt{apl385.ttf} is freely available in many places in 
-the Internet. Any other fixed-space font that offers the APL glyphs
+The font \texttt{apl385.ttf} is freely available in many places in the 
+Internet. Any other fixed-space font that offers pleasing APL glyphs 
 should work as well. In my opinion, APL code does not look good in
 a variable-space font.
 
