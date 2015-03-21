@@ -2,8 +2,8 @@
 # If you must, read INSTALL and LICENSE too.
 
 # Uncomment one of the following two lines. 
-#LUA_VERSION=5.2
-LUA_VERSION=5.3
+LUA_VERSION=5.2
+#LUA_VERSION=5.3
 # ----------------------------------------
 
 #    Targets
@@ -33,9 +33,11 @@ gnuapl_core.so: makefile $(OFILES)
 	cc -shared -pthread $(OFILES) -o gnuapl_core.so
 
 tryme: makefile gnuapl.lua gnuapl_core.so
+	#### Try out 'gnuapl' module using *installed* packages
 	$(LUA) -i -e"apl=require'gnuapl'"
 
 test: makefile gnuapl.lua gnuapl_core.so test.lua
+	#### Test 'gnuapl' module using *local* packages (i.e. in PWD)
 	$(LUA) test.lua
 
 luatex-gnuapl.pdf: luatex-gnuapl.tex
@@ -50,7 +52,7 @@ clean:
 README.html: README.txt
 	pandoc -s README.txt -o README.html
 
-install: gnuapl.lua gnuapl_core.so
+install: makefile gnuapl.lua gnuapl_core.so
 	cp gnuapl.lua $(SHARE)
 	cp gnuapl_core.so $(LIBLUA)
 

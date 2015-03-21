@@ -51,7 +51,7 @@ pcall(require,"complex")
 local found,core = pcall(require,"gnuapl_core")
 
 if not found then
-   error"Could not find required module `gnuapl_core`."
+   error("Could not find required module `gnuapl_core`.\n"..core)
 end
 
 local core_exec = core.exec

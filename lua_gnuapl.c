@@ -342,9 +342,23 @@ static const luaL_Reg APL_funcs [] = {
   {NULL,NULL}
 };
 
+#define MAX_LINE_LENGTH 2000
+static char buffer[MAX_LINE_LENGTH];
+
+static const char * readline(
+   int /* Immediate execution = 0, ⍞ = 1, ⎕ = 2, ⎕INP = 3, ∇ = 4 */ mode,
+   const char * /* don't free() ! */ prompt) {
+   size_t n=MAX_LINE_LENGTH;
+   char* line = buffer;
+   printf("%s",prompt);
+   if (getline(&line,&n,stdin)==-1) return 0;
+   return line;
+}
+
 LUAMOD_API int luaopen_gnuapl_core (lua_State *L) {
 
   init_libapl("gnuapl_core", /* do not log startup */ 0);
+  install_get_line_from_user_cb(readline);
 
   luaL_newmetatable(L,"APL object");
   luaL_setfuncs(L,APL_funcs,0);

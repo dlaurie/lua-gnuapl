@@ -63,9 +63,9 @@ The returned value `gnuapl` is a table of functions.
     is trimmed off.
     
     APL may write to standard output or standard error, which will appear 
-    interspersed with what Lua writes. APL functions that try to read from 
-    standard input must not be invoked.
-
+    interspersed with what Lua writes. APL functions like `⎕`, `⍞` and `∇`
+    read from standard input.
+ 
     If the APL code appears to be an attempt to execute the command `)OFF`,
     an error message is issued (see below under `gnuapl.OFF()`. The
     check is straightforward; no attempt has been made to intercept 
@@ -109,9 +109,9 @@ The returned value `gnuapl` is a table of functions.
 `gnuapl.OFF()` 
 ~   Terminates the Lua program, but not via the APL command `)OFF`,
     which is disabled. The reason is that APL does not know about Lua, 
-    and will not close the Lua state, 
-    including closing of the APL session. Unlike the APL interpreter, 
-    the Lua interpreter can also be stopped cleanly by Ctrl-D.
+    and will not close the Lua state, including closing of the APL 
+    session. Unlike the APL interpreter, the Lua interpreter can also 
+    be stopped cleanly by Ctrl-D.
 
 `gnuapl.type(val)`
 ~   Returns the contents of the metafield `__name` if any, otherwise returns
