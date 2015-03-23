@@ -10,9 +10,8 @@ LUA_VERSION=5.2
 # test: build the shared library and run the test program
 # install: install the Lua and C modules systemwide (requires root access)
 # tryme: start a Lua session with the module preloaded
-# doc: make HTML and PDF documentation (requires Pandoc and TeX)
+# doc: make HTML (requires Pandoc) and PDF (requires 5.2 and LuaLaTeX)
 # clean: remove files that can be re-made
-
 default: test 
 
 LUA=lua$(LUA_VERSION)
@@ -28,21 +27,24 @@ CFLAGS = -fPIC -I$(INC) -no-integrated-cpp
 OFILES = lua_gnuapl.o
 AUXFILES = luatex-gnuapl.aux luatex-gnuapl.log
 DOCFILES = README.html luatex-gnuapl.pdf
+MODULE_FILES =  makefile gnuapl.lua gnuapl_core.so
 
 gnuapl_core.so: makefile $(OFILES)
 	cc -shared -pthread $(OFILES) -o gnuapl_core.so
 
-tryme: makefile gnuapl.lua gnuapl_core.so
+tryme: $(MODULE_FILES)
 	#### Try out 'gnuapl' module using *installed* packages
 	$(LUA) -i -e"apl=require'gnuapl'"
 
-test: makefile gnuapl.lua gnuapl_core.so test.lua
+test: $(MODULE_FILES) test.lua
 	#### Test 'gnuapl' module using *local* packages (i.e. in PWD)
 	$(LUA) test.lua
 
-luatex-gnuapl.pdf: luatex-gnuapl.tex
+ifeq ($(LUA_VERSION),5.2)
+luatex-gnuapl.pdf: luatex-gnuapl.tex $(MODULE_FILES)
 	lualatex luatex-gnuapl.tex
 	rm $(AUXFILES)
+endif
 
 doc: $(DOCFILES)
 
@@ -52,7 +54,7 @@ clean:
 README.html: README.txt
 	pandoc -s README.txt -o README.html
 
-install: makefile gnuapl.lua gnuapl_core.so
+install: $(MODULE_FILES)
 	cp gnuapl.lua $(SHARE)
 	cp gnuapl_core.so $(LIBLUA)
 
@@ -61,8 +63,8 @@ install: makefile gnuapl.lua gnuapl_core.so
 #--------- targets below this message are for the convenience of the
 #--------- package maintainer and will need editing on other machines
 
-texinstall: gnuapl.lua gnuapl_core.so
 ifeq ($(LUA_VERSION),5.2)
+texinstall: $(MODULE_FILES)
 	ln -s $(SHARE)/gnuapl.lua ~/texmf/scripts/lua
 	ln -s $(LIBLUA)/gnuapl_core.so ~/texmf/clua
 endif

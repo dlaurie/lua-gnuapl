@@ -1,6 +1,17 @@
+-- test.lua © Dirk Laurie 2015, MIT license, see LICENSE
+-- Basic test program for gnuapl.lua
+
+-- test.lua tests the version of the module in the current directory.
 package.path = "./?.lua"
 package.cpath = "./?.so"
-apl = require "gnuapl"
+
+-- prevent pollution of _G. This _ENV is used in all `load`s.
+local _ENV = setmetatable({},{__index=_G})
+apl = require "gnuapl"  
+local apl_command = apl.command  -- this must be local, see bottom
+
+-- NB: this is the suggested layout for GNU APL as reported by ')KEYB'. 
+-- It may not be the same as the layout provided by your installation.
 keyboard = [[
 US Keyboard Layout:
 
@@ -28,10 +39,7 @@ print"The above table is obtained by 'apl_what()'.\n"
 print("APL_metatable contains:")
 print(apl.what(apl.APL_metatable))
 
-
-local _ENV = setmetatable({},{__index=_G})
-
-alltests = true
+local alltests = true
 
 preliminaries = [[
 ]]
@@ -42,6 +50,7 @@ for task in preliminaries:gmatch"[^\n]+" do
    end
 end
 
+-- Test syntax: `--` is a comment, `!` means don't check truth value
 tests = [[
 apl.MAXRANK == 8
 -- boolean constructor
@@ -108,18 +117,17 @@ for test in tests:gmatch"[^\n]+" do
    end
 end
 
+---[[ The following lines test for memory leaks. Expected result is
+--    OK - no stale functions
+-- `alltests` is not affected, even if the memory leak check fails, because
+-- output is on stderr. It cannot be captured as a string to test against.
+for k,v in pairs(_ENV) do _ENV[k]=nil end
+collectgarbage()
+apl_command")CHECK"     -- apl.command is no longer available
+--]]
+
 if alltests then print"All tests passed"
 else print"Some tests failed: see above"
 end
-
-for k,v in pairs(_ENV) do _ENV[k]=nil end
-collectgarbage()
-
-print("\n Running check whether all APL values have been released\n")
-
-apl.command")CHECK"
-
--- The value that C[3] had before the assignment `C[3] = "red"` has
--- not been released.
 
 

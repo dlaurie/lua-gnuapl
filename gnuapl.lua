@@ -1,20 +1,13 @@
--- gnuapl.lua © Dirk Laurie 2015, MIT licence, see COPYING 
+-- gnuapl.lua © Dirk Laurie 2015, MIT license, see LICENSE
+-- For package contents and installation instructions, see INSTALL 
+-- User's guide is called README.txt (README.md is a mere flyer)
+
+-- Stage 1: load libraries and modules
 
 assert (_VERSION == "Lua 5.2" or _VERSION == "Lua 5.3")
 
-local mathtype = math.type or -- needed for Lua 5.2
-   function(x)
-      if type(x)~='number' then return nil end
-      if math.floor(x)==x then return "integer"
-      else return "float"
-      end
-   end
-
 local LIB = "libapl.so"
 local DIR = "/usr/local/lib/apl/"
-local APL_name = '^%s*[_%a][_%w]*%s*$'
-local APL_command = '^%s*[%)%]][a-zA-Z]+'
-local APL_OFF = "^%s*%)OFF%s*$"
 
 local is_loaded_library = {}
 -- The functions in this table return the fully qualified name of the 
@@ -54,6 +47,20 @@ if not found then
    error("Could not find required module `gnuapl_core`.\n"..core)
 end
 
+-- Stage 2: modify existing features in core module
+
+local APL_name = '^%s*[_%a][_%w]*%s*$'
+local APL_command = '^%s*[%)%]][a-zA-Z]+'
+local APL_OFF = "^%s*%)OFF%s*$"
+
+local mathtype = math.type or -- needed for Lua 5.2
+   function(x)
+      if type(x)~='number' then return nil end
+      if math.floor(x)==x then return "integer"
+      else return "float"
+      end
+   end
+
 local core_exec = core.exec
 local core_command = core.command
 local core_get = core.get
@@ -84,6 +91,8 @@ core.command = function(str)
       return core_command(str)
    end
 end
+
+-- Stage 3: add further features to core module
 
 core.ERASE = function(arg) return core_command(")ERASE "..(arg or "")) end
 core.FNS = function(arg) return core_command(")FNS "..(arg or "")) end
@@ -130,39 +139,6 @@ core.what = function(tbl)
    end
 end
 
-local APL_mt = core.APL_metatable
-local APL_index = APL_mt.__index
-
-APL_mt.__index = function(self,index)
-  if type(index)=="number" then return APL_index(self,index)
-  else return APL_mt[index]
-  end
-end
-
-APL_mt.shape = function(val)
-   local rank=val:rank()
-   local shape={}
-   for k=1,rank do shape[k]=val:axis(k-1) end
-   return shape
-end
-
-local apl2lua
-apl2lua = function(apl)
-  if apl:is_string() then return tostring(apl) end
-  local n = #apl
-  local t = {shape=apl:shape()}
-  for k=1,n do
-    local a=apl[k]
-    if core.type(a)=="APL object" then 
-       t[k]=apl2lua(a) 
-    else
-       t[k]=a
-    end
-  end
-  if apl:rank()==0 then t=t[1] end
-  return t
-end
-
 local lua2apl
 lua2apl = function(lua)
    if core.type(lua)=="APL object" then return lua end
@@ -187,31 +163,14 @@ lua2apl = function(lua)
    end
    return apl
 end
+core.new = lua2apl
 
 core.set = function(name,val)
    if type(val)=="table" then val = lua2apl(val) end
    core_set(name,val)
 end
-   
-core.new = lua2apl
-
-APL_mt.lua = apl2lua
-local APL_tostring = APL_mt.__tostring
-APL_mt.__tostring = function(obj)
-   return (APL_tostring(obj):gsub("\n$",""))
-end
-APL_mt.__name = APL_mt.__name or "APL object"  -- needed for Lua 5.2
 
 core.lua = function(str) return core_get(str):lua() end
-
-local celltype = APL_mt.celltype
-APL_mt.celltype = function(var,idx)
-   local ct = celltype(var,idx)
-   return ({[0x02]='char', [0x04]='pointer', [0x10]='int',
-     [0x20]='float', [0x40]='complex'})[ct] or ct
-end
-   
-setmetatable(core,{__call = function(self,str) return core_exec(str) end})
 
 core.texeval = 
 function(str,option)
@@ -223,6 +182,65 @@ function(str,option)
    return "\\noindent  \\\\" ..preamble..result
 end 
 
+setmetatable(core,{__call = function(self,str) return core_exec(str) end})
 
+-- Stage 4: modify existing features in APL objects
+
+local APL_mt = core.APL_metatable
+local APL_index = APL_mt.__index
+local APL_tostring = APL_mt.__tostring
+local APL_celltype = APL_mt.celltype
+APL_mt.__name = APL_mt.__name or "APL object"  -- needed for Lua 5.2
+
+-- tostring(apl) strip trailing newline character
+APL_mt.__tostring = function(obj)
+   return (APL_tostring(obj):gsub("\n$",""))
+end
+
+-- apl[]: supply indexing of ravel without compromising method table
+APL_mt.__index = function(self,index)
+  if type(index)=="number" then return APL_index(self,index)
+  else return APL_mt[index]
+  end
+end
+
+-- apl:celltype: user-friendly names for legal cell types
+APL_mt.celltype = function(var,idx)
+   local ct = APL_celltype(var,idx)
+   return ({[0x02]='char', [0x04]='pointer', [0x10]='int',
+     [0x20]='float', [0x40]='complex'})[ct] or ct
+end
+
+-- Stage 5: add new features to APL objects
+
+-- apl:lua
+local apl2lua
+apl2lua = function(apl)
+  if apl:is_string() then return tostring(apl) end
+  local n = #apl
+  local t = {shape=apl:shape()}
+  for k=1,n do
+    local a=apl[k]
+    if core.type(a)=="APL object" then 
+       t[k]=apl2lua(a) 
+    else
+       t[k]=a
+    end
+  end
+  if apl:rank()==0 then t=t[1] end
+  return t
+end
+APL_mt.lua = apl2lua
+
+-- apl:shape
+APL_mt.shape = function(val)
+   local rank=val:rank()
+   local shape={}
+   for k=1,rank do shape[k]=val:axis(k-1) end
+   return shape
+end
+
+
+   
 return core
 

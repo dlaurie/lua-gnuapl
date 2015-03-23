@@ -92,8 +92,8 @@ should have everything you need. If not, check out the source by
     svn -checkout http://svn.savannah.gnu.org/svn/apl/trunk
 
 This will make a subdirectory `trunk` in the current directory
-containing the source code.  Sources retrieved on 6 March 2015 
-(revision 555) were used in the development of `gnuapl`. In that
+containing the source code.  Sources retrieved on 23 March 2015 
+(revision 570) were used in the development of `gnuapl`. In that
 directory, do:
 
     ./configure --with-libapl 
